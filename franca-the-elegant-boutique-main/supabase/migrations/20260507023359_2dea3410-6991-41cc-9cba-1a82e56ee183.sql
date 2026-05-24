@@ -1,0 +1,1 @@
+REVOKE SELECT (costo) ON public.productos FROM anon, authenticated;

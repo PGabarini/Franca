@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.crear_pedido_seguro(jsonb, text, text, text, text, text, text);

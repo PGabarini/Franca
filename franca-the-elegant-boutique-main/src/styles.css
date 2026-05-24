@@ -1,0 +1,137 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-clay: var(--clay);
+  --color-sand: var(--sand);
+  --color-cream: var(--cream);
+
+  --font-serif: "Helvetica Neue", "Inter", system-ui, sans-serif;
+  --font-sans: "Helvetica Neue", "Inter", system-ui, sans-serif;
+  --font-display: "Helvetica Neue", "Inter", system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.125rem;
+
+  /* Franca palette: ivory cream + brick red (matched to logo) */
+  --background: oklch(0.965 0.012 78);          /* ivory cream */
+  --foreground: oklch(0.22 0.02 40);            /* near-black warm */
+
+  --card: oklch(0.975 0.01 78);
+  --card-foreground: oklch(0.22 0.02 40);
+
+  --popover: oklch(0.975 0.01 78);
+  --popover-foreground: oklch(0.22 0.02 40);
+
+  --primary: oklch(0.46 0.16 32);               /* franca brick red (logo) */
+  --primary-foreground: oklch(0.97 0.012 78);
+
+  --secondary: oklch(0.93 0.015 72);            /* soft sand */
+  --secondary-foreground: oklch(0.22 0.02 40);
+
+  --muted: oklch(0.94 0.012 78);
+  --muted-foreground: oklch(0.45 0.03 38);
+
+  --accent: oklch(0.46 0.16 32);
+  --accent-foreground: oklch(0.97 0.012 78);
+
+  --destructive: oklch(0.5 0.2 27);
+  --destructive-foreground: oklch(0.97 0.012 78);
+
+  --border: oklch(0.86 0.015 72);
+  --input: oklch(0.88 0.012 72);
+  --ring: oklch(0.46 0.16 32);
+
+  --cream: oklch(0.965 0.012 78);
+  --sand: oklch(0.88 0.02 72);
+  --clay: oklch(0.46 0.16 32);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, .font-serif {
+    font-family: var(--font-sans);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    font-style: normal;
+  }
+
+  .font-wordmark {
+    font-family: var(--font-sans);
+    font-weight: 800;
+    font-style: normal;
+    letter-spacing: -0.045em;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .container-editorial {
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .container-editorial { padding-inline: 2.5rem; }
+  }
+  .tracking-brand { letter-spacing: 0.28em; }
+
+  .fade-up {
+    animation: fadeUp 0.7s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .product-enter {
+    animation: productEnter 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes productEnter {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
