@@ -208,6 +208,7 @@ function Carrito() {
                 snapshot={pedidoSnapshot}
                 comprobanteSubido={comprobanteSubido}
                 onUploaded={() => setComprobanteSubido(true)}
+                onRemoved={() => setComprobanteSubido(false)}
                 onFinalizar={() => { if (!isBuyNow) cart.clear(); setStep(6); }}
               />
             </div>
@@ -744,6 +745,7 @@ function Row({ label, value, muted }: { label: string; value: string; muted?: bo
 
 function Paso5Pago({
   pedidoId, snapshot, comprobanteSubido, onUploaded, onFinalizar,
+  onRemoved,
 }: {
   pedidoId: string;
   snapshot: {
@@ -755,6 +757,7 @@ function Paso5Pago({
   comprobanteSubido: boolean;
   onUploaded: () => void;
   onFinalizar: () => void;
+  onRemoved: () => void;
 }) {
   const { data: datos, isLoading } = useQuery(datosBancariosQueryOptions());
   const [uploading, setUploading] = useState(false);
@@ -869,7 +872,7 @@ function Paso5Pago({
               </div>
               <button
                 type="button" aria-label="Quitar"
-                onClick={(e) => { e.stopPropagation(); setFile(null); }}
+                onClick={(e) => { e.stopPropagation(); setFile(null); onRemoved();}}
                 className="text-muted-foreground hover:text-destructive p-1"
               ><X className="h-4 w-4" /></button>
             </div>
