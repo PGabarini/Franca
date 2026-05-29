@@ -12,16 +12,30 @@ export type Consulta = {
   created_at: string;
 };
 
-export async function fetchConsultasByProducto(productoId: string): Promise<Consulta[]> {
+export async function fetchConsultasByProducto(productoId: string, isAdmin = false): Promise<Consulta[]> {
+  // 1. Si sos admin, vas directo a la tabla y traés TODO sin filtros restrictivos
+  if (isAdmin) {
+    const { data, error } = await supabase
+      .from("producto_consultas")
+      .select("*")
+      .eq("producto_id", productoId)
+      .order("created_at", { ascending: false });
+      
+    if (error) throw error;
+    return data as Consulta[];
+  }
+
+  // 2. Si es un cliente o invitado, usamos el RPC público que oculta las pendientes
   const { data, error } = await supabase.rpc("get_consultas_publicas", { p_producto_id: productoId });
   if (error) throw error;
   return ((data ?? []) as any[]).map((r) => ({ ...r, user_id: "" })) as Consulta[];
 }
 
-export const consultasQueryOptions = (productoId: string) =>
+// Sumamos isAdmin a los parámetros y a la queryKey de React Query
+export const consultasQueryOptions = (productoId: string, isAdmin = false) =>
   queryOptions({
-    queryKey: ["consultas", productoId],
-    queryFn: () => fetchConsultasByProducto(productoId),
+    queryKey: ["consultas", productoId, isAdmin], 
+    queryFn: () => fetchConsultasByProducto(productoId, isAdmin),
   });
 
 export async function crearConsulta(input: {

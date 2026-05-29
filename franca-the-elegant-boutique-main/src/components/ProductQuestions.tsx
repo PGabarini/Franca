@@ -40,7 +40,7 @@ export function ProductQuestions({ productoId }: { productoId: string }) {
   const { user } = useAuth();
   const { isAdmin } = useIsAdmin();
   const qc = useQueryClient();
-  const { data: consultas = [], isLoading } = useQuery(consultasQueryOptions(productoId));
+  const { data: consultas = [], isLoading } = useQuery(consultasQueryOptions(productoId, !!isAdmin));
 
   const [pregunta, setPregunta] = useState("");
   const [enviando, setEnviando] = useState(false);
