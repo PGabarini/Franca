@@ -34,21 +34,39 @@ function AdminConfig() {
   });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
+useEffect(() => {
     if (data) {
-      setForm({
-        titular: data.titular, cbu: data.cbu, alias: data.alias,
-        banco: data.banco, email_contacto: data.email_contacto, notas: data.notas,
-      });
+      // Extraemos el primer registro del array (si es un array)
+      const row = Array.isArray(data) ? data[0] : data;
+      
+      if (row) {
+        setForm({
+          titular: row.titular || "", 
+          cbu: row.cbu || "", 
+          alias: row.alias || "",
+          banco: row.banco || "", 
+          email_contacto: row.email_contacto || "", 
+          notas: row.notas || "",
+        });
+      }
     }
   }, [data]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!data) return;
+    
+    // Buscamos el ID correcto extrayendo el objeto
+    const row = Array.isArray(data) ? data[0] : data;
+    
+    if (!row?.id) {
+      toast.error("Error: No se encontró el registro en la base de datos.");
+      return;
+    }
+
     setSaving(true);
     try {
-      await updateDatosBancarios(data.id, form);
+      await updateDatosBancarios(row.id, form);
       toast.success("Datos guardados");
       refetch();
     } catch (err) {

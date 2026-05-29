@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // <-- Agregamos useEffect
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,22 +22,28 @@ function AdminHome() {
   const [busy, setBusy] = useState(false);
   const { isAdmin, adminCount, loading: adminLoading } = useIsAdmin();
 
-  const handleClaim = async () => {
-    setBusy(true);
-    try {
-      const ok = await claimFirstAdmin();
-      if (ok) {
-        toast.success("¡Listo! Sos administrador. Refrescá la página.");
-        setTimeout(() => window.location.reload(), 800);
-      } else {
-        toast.info("Ya existe un administrador en el sistema.");
-      }
-    } catch (e: any) {
-      toast.error(e.message ?? "Error");
-    } finally {
-      setBusy(false);
+  // EFECTO AUTOMÁTICO: Reclama el rol si detecta que no hay admins
+  useEffect(() => {
+    if (!adminLoading && !isAdmin && adminCount === 0 && !busy) {
+      const autoClaim = async () => {
+        setBusy(true);
+        try {
+          const ok = await claimFirstAdmin();
+          if (ok) {
+            toast.success("¡Listo! Sos el administrador de Franca. Refrescando...");
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            toast.info("Ya existe un administrador en el sistema.");
+          }
+        } catch (e: any) {
+          toast.error(e.message ?? "Error");
+          setBusy(false);
+        }
+      };
+      
+      autoClaim();
     }
-  };
+  }, [adminLoading, isAdmin, adminCount, busy]);
 
   const handlePromote = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,15 +65,13 @@ function AdminHome() {
       <h1 className="font-serif text-4xl md:text-5xl mt-3">Panel</h1>
       <p className="text-muted-foreground mt-4">Gestioná el catálogo de Franca y los administradores.</p>
 
+      {/* MODIFICADO: En vez del botón, mostramos un estado de carga mientras se asigna solo */}
       {!adminLoading && !isAdmin && adminCount === 0 && (
-        <div className="mt-8 border border-border p-6 text-left">
-          <h2 className="font-serif text-2xl">Activar primer administrador</h2>
+        <div className="mt-8 border border-border p-6 text-left bg-muted/20">
+          <h2 className="font-serif text-2xl animate-pulse">Configurando permisos...</h2>
           <p className="text-sm text-muted-foreground mt-2">
-            No hay administradores activos. Reclamá el rol para tu cuenta actual y después vas a poder crear y editar productos.
+            Detectamos que sos el primer usuario. Te estamos asignando el rol de dueño automáticamente para que puedas gestionar el catálogo.
           </p>
-          <Button onClick={handleClaim} disabled={busy} variant="hero" size="lg" className="mt-4">
-            Reclamar rol de admin
-          </Button>
         </div>
       )}
 
