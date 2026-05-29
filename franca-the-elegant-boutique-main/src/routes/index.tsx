@@ -10,11 +10,13 @@ import { ArrowRight, Truck, RefreshCw, ShieldCheck, MessageCircle } from "lucide
 import hero from "@/assets/editorial-franca.jpg";
 import editorial from "@/assets/hero-franca.jpg";
 import { siteImagesQueryOptions } from "@/lib/site-images";
+import { categoriasQueryOptions } from "@/lib/categorias";
 
 export const Route = createFileRoute("/")({
   loader: ({ context: { queryClient } }) => {
     queryClient.ensureQueryData(productsQueryOptions());
     queryClient.ensureQueryData(siteImagesQueryOptions());
+    queryClient.ensureQueryData(categoriasQueryOptions());
   },
   component: Index,
 });
@@ -22,6 +24,13 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { data: products } = useSuspenseQuery(productsQueryOptions());
   const { data: siteImages } = useSuspenseQuery(siteImagesQueryOptions());
+
+  // 1. Traemos las categorías desde Supabase
+  const { data: categoriasData } = useSuspenseQuery(categoriasQueryOptions());
+  
+  // 2. Filtramos solo las activas (por si desactivaste alguna en el panel)
+  const categoriasActivas = categoriasData?.filter((c) => c.activo) || [];
+
   const destacados = products.filter((p) => p.destacado).slice(0, 8);
   const heroImg = siteImages.home_hero?.url || hero;
   const heroAlt = siteImages.home_hero?.alt || "Editorial Franca otoño invierno 2026";
@@ -72,14 +81,14 @@ function Index() {
               <span className="text-[11px] md:text-xs uppercase tracking-brand text-primary/70 font-medium hidden md:inline-block pr-2 border-r border-primary/30">
                 Categorías
               </span>
-              {CATEGORIES.map((cat) => (
+                {categoriasActivas.map((cat) => (
                 <Link
-                  key={cat}
+                  key={cat.id} // <-- Usamos el ID como key
                   to="/catalogo"
-                  search={{ categoria: cat }}
+                  search={{ categoria: cat.nombre }} // <-- Usamos el nombre para la búsqueda
                   className="text-xs md:text-sm uppercase tracking-brand text-primary font-semibold hover:text-primary/70 transition-colors whitespace-nowrap"
                 >
-                  {cat}
+                  {cat.nombre}
                 </Link>
               ))}
             </div>
