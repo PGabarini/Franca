@@ -19,10 +19,6 @@ import {
 const NAV = [
   { to: "/", label: "Inicio" },
   { to: "/catalogo", label: "Colección" },
-  { to: "/catalogo?categoria=Abrigos", label: "Abrigos" },
-  { to: "/catalogo?categoria=Vestidos", label: "Vestidos" },
-  { to: "/catalogo?categoria=Pantalones", label: "Pantalones" },
-  { to: "/catalogo?categoria=Accesorios", label: "Accesorios" },
   { to: "/contacto", label: "Contacto" },
 ];
 
