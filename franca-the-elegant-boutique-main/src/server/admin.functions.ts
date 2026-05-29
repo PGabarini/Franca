@@ -14,7 +14,7 @@ const productSchema = z.object({
   costo: z.number().min(0).max(99999999).nullable().optional(),
   stock: z.number().int().min(0).max(99999),
   imagen_url: z.string().trim().min(1).max(500).refine((value) => /^p[1-8]$/.test(value) || /^https?:\/\//i.test(value)),
-  categoria: z.enum(CATEGORIES),
+  categoria: z.string().min(1, "La categoría es obligatoria"),
   talles: z.array(z.string()).min(1),
   color: z.array(z.string().trim().min(1).max(60)).max(20),
   destacado: z.boolean(),
