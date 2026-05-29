@@ -60,10 +60,12 @@ export async function actualizarEstadoPedido(id: string, estado: EstadoPedido) {
 
 export async function subirComprobante(pedidoId: string, file: File): Promise<string> {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
-  const path = `${pedidoId}/${Date.now()}.${ext}`;
+  // 1. Quitamos el Date.now() para que siempre tenga el mismo nombre exacto
+  const path = `${pedidoId}/comprobante.${ext}`;
   const { error: upErr } = await supabase.storage
     .from("comprobantes")
-    .upload(path, file, { contentType: file.type, upsert: false });
+    // 2. Activamos el upsert: true para que pise el archivo anterior sin chistar
+    .upload(path, file, { contentType: file.type, upsert: true });
   if (upErr) throw upErr;
 
   const { error: updErr } = await supabase.rpc("set_comprobante_pedido", {
