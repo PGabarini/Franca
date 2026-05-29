@@ -11,18 +11,25 @@ export async function uploadProductImage(file: File): Promise<string> {
   if (file.size > MAX_BYTES) {
     throw new Error("La imagen supera 5MB.");
   }
+  
   const rawExt = (file.name.split(".").pop() || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const ext = rawExt || (file.type.split("/")[1] ?? "jpg");
-  const path = `${crypto.randomUUID()}.${ext}`;
+  
+  // SOLUCIÓN: Generador de ID único a prueba de fallos
+  const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+  const path = `${uniqueId}.${ext}`;
+  
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
     cacheControl: "31536000",
     upsert: false,
     contentType: file.type,
   });
+  
   if (error) {
     console.error("[uploadProductImage] storage error", error);
     throw new Error(error.message || "No se pudo subir la imagen");
   }
+  
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
   return data.publicUrl;
 }
