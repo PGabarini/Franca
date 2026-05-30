@@ -1,6 +1,23 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { createClient } from "@supabase/supabase-js";
+
+// @ts-ignore
+import { getEvent } from "vinxi/http";
+
+// Función maestra para obtener el cliente de Supabase con las variables de Cloudflare
+function getSupabaseAdmin() {
+  const event = getEvent();
+  const env = event?.context?.cloudflare?.env || process.env;
+  const supabaseUrl = env.SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Missing Supabase server environment variables. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.");
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 const CATEGORIES = ["Sweaters", "Pantalones", "Camisas", "Abrigos", "Faldas", "Accesorios"] as const;
 
@@ -52,7 +69,7 @@ const normalizeProduct = (row: any) => ({
 });
 
 async function getUserIdFromToken(accessToken: string) {
-  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+  const { data, error } = await getSupabaseAdmin().auth.getUser(accessToken);
   if (error || !data.user) {
     throw new Error("Sesión inválida o expirada. Iniciá sesión nuevamente.");
   }
@@ -60,7 +77,7 @@ async function getUserIdFromToken(accessToken: string) {
 }
 
 async function ensureAdmin(userId: string) {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseAdmin()
     .from("user_roles")
     .select("id")
     .eq("user_id", userId)
@@ -78,7 +95,7 @@ async function ensureAdminFromToken(accessToken: string) {
 }
 
 async function countAdmins() {
-  const { count, error } = await supabaseAdmin
+  const { count, error } = await getSupabaseAdmin()
     .from("user_roles")
     .select("id", { count: "exact", head: true })
     .eq("role", "admin");
@@ -92,7 +109,7 @@ export const getAdminStatusServer = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const userId = await getUserIdFromToken(data.accessToken);
     const [{ data: role, error }, adminCount] = await Promise.all([
-      supabaseAdmin
+      getSupabaseAdmin()
         .from("user_roles")
         .select("id")
         .eq("user_id", userId)
@@ -109,7 +126,7 @@ export const listAdminProducts = createServerFn({ method: "POST" })
   .inputValidator((data) => authSchema.parse(data))
   .handler(async ({ data }) => {
     await ensureAdminFromToken(data.accessToken);
-    const { data: rows, error } = await supabaseAdmin
+    const { data: rows, error } = await getSupabaseAdmin()
       .from("productos")
       .select("id,slug,nombre,precio,costo,stock,categoria,activo,destacado,imagen_url")
       .order("created_at", { ascending: false });
@@ -122,7 +139,7 @@ export const getAdminProduct = createServerFn({ method: "POST" })
   .inputValidator((data) => authSchema.extend(idSchema.shape).parse(data))
   .handler(async ({ data }) => {
     await ensureAdminFromToken(data.accessToken);
-    const { data: row, error } = await supabaseAdmin
+    const { data: row, error } = await getSupabaseAdmin()
       .from("productos")
       .select("id,slug,nombre,descripcion,precio,costo,stock,imagen_url,categoria,talles,color,destacado,activo,talles_medidas")
       .eq("id", data.id)
@@ -136,7 +153,7 @@ export const createAdminProduct = createServerFn({ method: "POST" })
   .inputValidator((data) => authSchema.extend({ product: productSchema }).parse(data))
   .handler(async ({ data }) => {
     await ensureAdminFromToken(data.accessToken);
-    const { data: row, error } = await supabaseAdmin
+    const { data: row, error } = await getSupabaseAdmin()
       .from("productos")
       .insert(data.product as any)
       .select("id")
@@ -151,7 +168,7 @@ export const updateAdminProduct = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await ensureAdminFromToken(data.accessToken);
     const { id, ...payload } = data.product;
-    const { error } = await supabaseAdmin
+    const { error } = await getSupabaseAdmin()
       .from("productos")
       .update(payload as any)
       .eq("id", id);
@@ -164,7 +181,7 @@ export const deleteAdminProduct = createServerFn({ method: "POST" })
   .inputValidator((data) => authSchema.extend(idSchema.shape).parse(data))
   .handler(async ({ data }) => {
     await ensureAdminFromToken(data.accessToken);
-    const { error } = await supabaseAdmin.from("productos").delete().eq("id", data.id);
+    const { error } = await getSupabaseAdmin().from("productos").delete().eq("id", data.id);
 
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -177,7 +194,7 @@ export const claimFirstAdminServer = createServerFn({ method: "POST" })
     const adminCount = await countAdmins();
     if (adminCount > 0) return false;
 
-    const { error } = await supabaseAdmin
+    const { error } = await getSupabaseAdmin()
       .from("user_roles")
       .insert({ user_id: userId, role: "admin" });
 
@@ -193,7 +210,7 @@ export const promoteUserToAdminServer = createServerFn({ method: "POST" })
     let targetUserId: string | null = null;
 
     for (let page = 1; page <= 20 && !targetUserId; page += 1) {
-      const { data: usersPage, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+      const { data: usersPage, error } = await getSupabaseAdmin().auth.admin.listUsers({ page, perPage: 1000 });
       if (error) throw new Error(error.message);
 
       const target = usersPage.users.find((user) => user.email?.toLowerCase() === targetEmail);
@@ -203,7 +220,7 @@ export const promoteUserToAdminServer = createServerFn({ method: "POST" })
 
     if (!targetUserId) throw new Error("Usuario no encontrado");
 
-    const { error } = await supabaseAdmin
+    const { error } = await getSupabaseAdmin()
       .from("user_roles")
       .insert({ user_id: targetUserId, role: "admin" });
 
@@ -215,7 +232,7 @@ export const listProductImages = createServerFn({ method: "POST" })
   .inputValidator((data) => authSchema.extend({ productoId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
     await ensureAdminFromToken(data.accessToken);
-    const { data: rows, error } = await supabaseAdmin
+    const { data: rows, error } = await getSupabaseAdmin()
       .from("producto_imagenes")
       .select("id,producto_id,url,alt,orden")
       .eq("producto_id", data.productoId)
@@ -228,7 +245,7 @@ export const addProductImage = createServerFn({ method: "POST" })
   .inputValidator((data) => authSchema.extend({ image: productImageSchema }).parse(data))
   .handler(async ({ data }) => {
     await ensureAdminFromToken(data.accessToken);
-    const { data: row, error } = await supabaseAdmin
+    const { data: row, error } = await getSupabaseAdmin()
       .from("producto_imagenes")
       .insert(data.image as any)
       .select("id,producto_id,url,alt,orden")
@@ -242,7 +259,7 @@ export const updateProductImage = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await ensureAdminFromToken(data.accessToken);
     const { id, ...payload } = data.image;
-    const { error } = await supabaseAdmin
+    const { error } = await getSupabaseAdmin()
       .from("producto_imagenes")
       .update(payload as any)
       .eq("id", id);
@@ -254,7 +271,7 @@ export const deleteProductImage = createServerFn({ method: "POST" })
   .inputValidator((data) => authSchema.extend(idSchema.shape).parse(data))
   .handler(async ({ data }) => {
     await ensureAdminFromToken(data.accessToken);
-    const { error } = await supabaseAdmin.from("producto_imagenes").delete().eq("id", data.id);
+    const { error } = await getSupabaseAdmin().from("producto_imagenes").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
