@@ -32,7 +32,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Franca — Indumentaria atemporal" },
+      { title: "Franca." },
       { name: "description", content: "Franca · ropa premium, minimalista y atemporal. Comprá por WhatsApp." },
       { property: "og:title", content: "Franca — Indumentaria atemporal" },
       { property: "og:description", content: "Franca · ropa premium, minimalista y atemporal. Comprá por WhatsApp." },
@@ -45,6 +45,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
