@@ -249,7 +249,7 @@ function ProgressHeader({ step }: { step: number }) {
 }
 
 /* ===================== Paso 0: Carrito (igual al original) ===================== */
-
+/* ===================== Paso 0: Carrito (Corregido) ===================== */
 function PasoCarrito({ cart, onContinuar }: { cart: ReturnType<typeof useCart>; onContinuar: () => void }) {
   if (cart.items.length === 0) {
     return (
@@ -263,22 +263,27 @@ function PasoCarrito({ cart, onContinuar }: { cart: ReturnType<typeof useCart>; 
     );
   }
   return (
-    <div className="grid lg:grid-cols-[1fr_400px] gap-12">
-      <div className="divide-y divide-border border-y border-border">
+    <div className="grid lg:grid-cols-[1fr_400px] gap-12 w-full max-w-full">
+      <div className="divide-y divide-border border-y border-border w-full min-w-0">
         {cart.items.map((it) => (
-          <div key={`${it.productId}-${it.talle}-${it.color ?? ""}`} className="py-6 flex gap-4 md:gap-6">
+          <div key={`${it.productId}-${it.talle}-${it.color ?? ""}`} className="py-6 flex gap-4 md:gap-6 w-full min-w-0 overflow-hidden pr-2 sm:pr-4">
             <Link to="/producto/$slug" params={{ slug: it.product.slug }} className="block w-24 md:w-32 aspect-[4/5] bg-secondary/40 shrink-0">
               <img src={it.product.imagen_url} alt={it.product.nombre} className="h-full w-full object-cover" />
             </Link>
-            <div className="flex-1 flex flex-col justify-between">
-              <div className="flex justify-between gap-4">
-                <div>
-                  <h3 className="font-serif text-lg">{it.product.nombre}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Talle {it.talle}{it.color ? ` · ${it.color}` : ""}</p>
+            
+            <div className="flex-1 min-w-0 flex flex-col justify-between">
+              
+              <div className="flex justify-between items-start gap-4 w-full">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-serif text-lg break-words">{it.product.nombre}</h3>
+                  <p className="text-xs text-muted-foreground mt-1 truncate">Talle {it.talle}{it.color ? ` · ${it.color}` : ""}</p>
                 </div>
-                <span className="tabular-nums">{formatPrice(it.product.precio * it.cantidad)}</span>
+                <span className="tabular-nums shrink-0 whitespace-nowrap pt-1">
+                  {formatPrice(it.product.precio * it.cantidad)}
+                </span>
               </div>
-              <div className="flex items-center justify-between mt-4">
+              
+              <div className="flex items-center justify-between mt-4 w-full">
                 <div className="flex items-center border border-border">
                   <button aria-label="Disminuir" onClick={() => cart.setQty(it.productId, it.talle, it.cantidad - 1, it.color)} className="h-9 w-9 flex items-center justify-center hover:bg-secondary">
                     <Minus className="h-3.5 w-3.5" />
@@ -288,15 +293,17 @@ function PasoCarrito({ cart, onContinuar }: { cart: ReturnType<typeof useCart>; 
                     <Plus className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <button aria-label="Eliminar" onClick={() => cart.remove(it.productId, it.talle, it.color)} className="text-muted-foreground hover:text-destructive p-2">
+                <button aria-label="Eliminar" onClick={() => cart.remove(it.productId, it.talle, it.color)} className="text-muted-foreground hover:text-destructive p-2 shrink-0">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
+              
             </div>
           </div>
         ))}
       </div>
-      <aside className="bg-secondary/30 p-6 md:p-8 h-fit lg:sticky lg:top-24">
+      
+      <aside className="bg-secondary/30 p-6 md:p-8 h-fit lg:sticky lg:top-24 w-full">
         <h2 className="font-serif text-2xl mb-6">Resumen</h2>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="tabular-nums">{formatPrice(cart.total)}</span></div>
@@ -308,7 +315,6 @@ function PasoCarrito({ cart, onContinuar }: { cart: ReturnType<typeof useCart>; 
     </div>
   );
 }
-
 /* ===================== Paso 1: Datos cliente ===================== */
 
 function Field({ label, error, children, hint }: { label: string; error?: string; children: React.ReactNode; hint?: string }) {
