@@ -17,7 +17,7 @@ export function ProductCard({ product }: { product: Product }) {
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         />
-        {product.stock < 6 && (
+        {product.stock < 3 && (
           <span className="absolute top-3 left-3 bg-background/95 px-2 py-1 text-[9px] uppercase tracking-brand">
             Últimas unidades
           </span>
