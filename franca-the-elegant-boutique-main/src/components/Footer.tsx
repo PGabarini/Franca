@@ -33,13 +33,13 @@ export function Footer() {
           <h4 className="text-xs uppercase tracking-brand mb-4">Contacto</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> {BRAND.email}</li>
-            <li className="flex items-center gap-2"><Instagram className="h-4 w-4" /> {BRAND.instagram}</li>
+            <a href="https://www.instagram.com/franca2001_/" target="_blank" rel="noopener noreferrer" ><li className="flex items-center gap-2"><Instagram className="h-4 w-4" /> {BRAND.instagram}</li></a>
           </ul>
         </div>
       </div>
       <div className="border-t border-border">
         <div className="container-editorial py-6 text-xs text-muted-foreground flex flex-col md:flex-row justify-between gap-2">
-          <span>© {new Date().getFullYear()} {BRAND.name}. Todos los derechos reservados.</span>
+          <span>© {new Date().getFullYear()} {BRAND.name} Todos los derechos reservados.</span>
           <span>Hecho con cuidado.</span>
         </div>
       </div>

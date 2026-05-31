@@ -119,9 +119,13 @@ function ContactoPage() {
             <a href={`mailto:${BRAND.email}`} className="flex items-center gap-3 hover:text-primary transition-colors">
               <Mail className="h-4 w-4" /> {BRAND.email}
             </a>
+            <a href="https://www.instagram.com/franca2001_/" target="_blank" rel="noopener noreferrer" >
             <div className="flex items-center gap-3 text-muted-foreground">
+              
               <Instagram className="h-4 w-4" /> {BRAND.instagram}
+              
             </div>
+            </a>
           </div>
         </div>
 
