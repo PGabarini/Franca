@@ -143,9 +143,9 @@ function Carrito() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
       <Header />
-      <main className="flex-1 container-editorial py-8 md:py-14">
+      <main className="flex-1 container-editorial py-8 md:py-14 w-full">
         {/* Step 0 = carrito */}
         {step === 0 && (
           <>
@@ -713,11 +713,13 @@ function Paso4Resumen({
         </div>
       </section>
 
-      <div className="flex justify-between gap-3 pt-4 border-t border-border">
-        <Button type="button" variant="ghost" onClick={onBack} disabled={submitting}><ArrowLeft className="h-4 w-4" /> Volver</Button>
-        <Button type="button" variant="hero" size="lg" onClick={handle} disabled={submitting}>
-          {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          Confirmar e ir a pagar
+      <div className="flex flex-col-reverse md:flex-row justify-between gap-3 pt-4 border-t border-border">
+        <Button type="button" variant="ghost" onClick={onBack} disabled={submitting} className="w-full md:w-auto">
+          <ArrowLeft className="h-4 w-4 mr-2" /> Volver
+        </Button>
+        <Button type="button" variant="hero" size="lg" onClick={handle} disabled={submitting} className="w-full md:w-auto text-sm md:text-base px-2">
+          {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+          <span className="truncate">Confirmar e ir a pagar</span>
         </Button>
       </div>
     </div>
@@ -899,15 +901,17 @@ function Paso5Pago({
           <h3 className="font-serif text-xl">Coordinar por WhatsApp</h3>
         </div>
         <p className="text-sm text-muted-foreground mb-4">Te abre el chat con el resumen del pedido listo para enviar.</p>
-        <Button asChild variant="wa" size="xl" className="w-full">
-          <a href={waUrl} target="_blank" rel="noreferrer" onClick={onFinalizar}>
-            <MessageCircle className="h-5 w-5" /> Completar compra por WhatsApp
+        <Button asChild variant="wa" size="xl" className="w-full px-2">
+          <a href={waUrl} target="_blank" rel="noreferrer" onClick={onFinalizar} className="flex items-center justify-center gap-2 w-full">
+            <MessageCircle className="h-5 w-5 shrink-0" /> 
+            <span className="truncate text-sm sm:text-base">Confirmar por WhatsApp</span>
           </a>
         </Button>
       </section>
 
+      {/* Botón Finalizar - Ajustado */}
       <div className="flex justify-end pt-4 border-t border-border">
-        <Button variant="hero" size="lg" disabled={!comprobanteSubido} onClick={onFinalizar}>
+        <Button variant="hero" size="lg" disabled={!comprobanteSubido} onClick={onFinalizar} className="w-full sm:w-auto">
           Finalizar
         </Button>
       </div>
