@@ -84,11 +84,13 @@ function ProductoPage() {
           </Link>
         </div>
 
-        <section className="product-enter container-editorial grid md:grid-cols-2 gap-10 md:gap-16 py-8 md:py-12">
+        <section className="product-enter container-editorial grid md:grid-cols-2 gap-10 md:gap-16 py-8 md:py-12 w-full max-w-full overflow-hidden">
           <ProductGallery imagenes={product.imagenes} nombre={product.nombre} />
-          <div className="md:py-8">
+          <div className="md:py-8 min-w-0 w-full overflow-hidden">
             <span className="text-xs uppercase tracking-brand text-muted-foreground">{product.categoria}</span>
-            <h1 className="font-serif text-4xl md:text-5xl mt-3">{product.nombre}</h1>
+            <h1 className="font-serif text-4xl md:text-5xl mt-3 break-words hyphens-auto w-full">
+              {product.nombre}
+            </h1>
             <p className="text-2xl mt-4 tabular-nums">{formatPrice(product.precio)}</p>
 
             <p className="mt-8 text-muted-foreground leading-relaxed">{product.descripcion}</p>
