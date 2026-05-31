@@ -39,7 +39,7 @@ function RegisterPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Cuenta creada. Revisá tu email para confirmar.");
+    toast.success("Cuenta creada. Inicia sesión con tu nueva cuenta.");
     navigate({ to: "/login" });
   };
 
@@ -87,10 +87,6 @@ function RegisterPage() {
         <span>o</span>
         <span className="h-px flex-1 bg-border" />
       </div>
-
-      <Button type="button" variant="outline" onClick={onGoogle} className="w-full h-12 rounded-none tracking-brand uppercase text-xs gap-2">
-        <GoogleIcon /> Continuar con Google
-      </Button>
     </AuthLayout>
   );
 }

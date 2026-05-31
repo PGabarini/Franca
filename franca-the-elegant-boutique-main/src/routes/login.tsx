@@ -77,9 +77,6 @@ function LoginPage() {
         <span className="h-px flex-1 bg-border" />
       </div>
 
-      <Button type="button" variant="outline" onClick={onGoogle} className="w-full h-12 rounded-none tracking-brand uppercase text-xs gap-2">
-        <GoogleIcon /> Continuar con Google
-      </Button>
     </AuthLayout>
   );
 }
