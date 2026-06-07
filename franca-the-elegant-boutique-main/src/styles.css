@@ -101,6 +101,50 @@
     font-style: normal;
     letter-spacing: -0.045em;
   }
+
+/* WhatsApp bubble - Versión Mobile (por defecto) */
+  .whatsapp {
+    cursor: pointer;
+    position: fixed;
+    right: 16px; /* Un poco más pegado al borde en celular */
+    bottom: 16px;
+    width: 50px; /* Más chico en celular */
+    height: 50px;
+    border-radius: 50%;
+    background: #25D366;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    z-index: 80;
+    transition: transform 0.2s ease; /* Le da un efecto suave si lo tocás */
+  }
+
+  .whatsapp svg {
+    width: 24px; /* Ícono más chico en celular */
+    height: 24px;
+    fill: #fff;
+  }
+
+  /* Versión Escritorio (pantallas de 768px o más) */
+  @media (min-width: 768px) {
+    .whatsapp {
+      right: 22px;
+      bottom: 22px;
+      width: 60px; /* Vuelve a tu tamaño original en PC */
+      height: 60px;
+    }
+    
+    .whatsapp svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .whatsapp:hover {
+      transform: scale(1.05); /* Efecto extra: se agranda apenitas al pasar el mouse en PC */
+    }
+  }
+
 }
 
 @layer utilities {
