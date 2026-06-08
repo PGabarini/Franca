@@ -53,9 +53,12 @@ function Index() {
 
             <div className="relative z-10 h-full container-editorial flex items-end md:items-center pb-16 md:pb-0">
               <div className="max-w-xl text-cream fade-up">
-              <h1 className="font-serif text-3xl md:text-6xl lg:text-7xl leading-[1.02] mt-5 text-balance text-cream">
-                Encontrá la respuesta a <span className="text-primary">"no sé qué ponerme"</span>
-              </h1>
+<h1 className="font-serif text-3xl md:text-6xl lg:text-7xl leading-[1.02] mt-5 text-balance text-cream">
+  Encontrá la respuesta a{" "}
+  <span className="bg-clip-text text-transparent bg-[linear-gradient(135deg,_oklch(0.6_0.14_32)_0%,_var(--primary)_100%)]">
+    "no sé qué ponerme"
+  </span>
+</h1>
                 <p className="mt-6 text-cream/90 leading-relaxed max-w-md text-sm md:text-base">
                   Básicos combinables y atemporales, hechos para durar.
                 </p>
