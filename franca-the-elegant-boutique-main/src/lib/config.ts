@@ -4,6 +4,6 @@ export const BRAND = {
   tagline: "La respuesta a no sé qué ponerme",
   // Formato internacional sin "+" ni espacios. Ej: 5491122334455
   whatsapp: "5492364453681",
-  email: "francinaguagnini@gmail.com",
+  email: "franca.ar2001@gmail.com",
   instagram: "franca2001_",
 };
