@@ -53,7 +53,7 @@ function Index() {
 
             <div className="relative z-10 h-full container-editorial flex items-end md:items-center pb-16 md:pb-0">
               <div className="max-w-xl text-cream fade-up">
-              <h1 className="font-serif text-3xl md:text-6xl lg:text-7xl leading-[1.02] mt-5 text-balance text-cream">
+              <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl leading-[1.02] mt-5 text-balance text-cream">
                 Encontrá la respuesta a "no sé qué ponerme"
               </h1>
                 <p className="mt-6 text-cream/90 leading-relaxed max-w-md text-sm md:text-base">
