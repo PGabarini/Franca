@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { useCart, crearPedido } from "@/lib/cart";
+import { unidadesAgregables, problemasDeStock } from "@/lib/cart-items";
+import { stockDisponible, sinStock } from "@/lib/stock";
 import { validarCodigo, calcularDescuento, type DescuentoValido } from "@/lib/descuentos";
 import { formatPrice, productsQueryOptions } from "@/lib/products";
 import { datosBancariosQueryOptions } from "@/lib/datos-bancarios";
@@ -109,6 +111,19 @@ function Carrito() {
   const goBack = () => setStep((s) => (Math.max(isBuyNow ? 1 : 0, s - 1) as Step));
 
   const confirmarPedido = async () => {
+    // Última verificación de stock antes de crear el pedido (cubre también "Comprar ahora").
+    const faltantes = problemasDeStock(
+      checkoutItems,
+      new Map(checkoutItems.map((i) => [i.product.id, i.product.stock] as [string, number])),
+    );
+    if (faltantes.length > 0) {
+      const nombres = faltantes
+        .map((f) => checkoutItems.find((i) => i.productId === f.productId)?.product.nombre)
+        .filter(Boolean)
+        .join(", ");
+      toast.error("No hay stock suficiente", { description: `Revisá: ${nombres}` });
+      return;
+    }
     try {
       const direccionEnvio =
         metodo === "envio" ? formatDireccion(direccion) : `Retiro en ${sucursal?.nombre} — ${sucursal?.direccion}`;
@@ -157,8 +172,17 @@ function Carrito() {
           </>
         )}
 
+        {/* "Comprar ahora" de un producto que se quedó sin stock */}
+        {step >= 1 && step <= 4 && buyNowProduct && sinStock(buyNowProduct.stock) && (
+          <div className="max-w-3xl mx-auto py-16 text-center">
+            <p className="font-serif text-2xl mb-3">{buyNowProduct.nombre} está sin stock</p>
+            <p className="text-muted-foreground mb-8">Se agotó mientras elegías. Podés ver otros productos del catálogo.</p>
+            <Button asChild variant="hero" size="lg"><Link to="/catalogo">Ver catálogo</Link></Button>
+          </div>
+        )}
+
         {/* Steps 1..4: checkout */}
-        {step >= 1 && step <= 4 && (
+        {step >= 1 && step <= 4 && !(buyNowProduct && sinStock(buyNowProduct.stock)) && (
           <div className="max-w-3xl mx-auto">
             <ProgressHeader step={step} />
             <div key={step} className="animate-in fade-in slide-in-from-right-4 duration-300">
@@ -277,6 +301,13 @@ function PasoCarrito({ cart, onContinuar }: { cart: ReturnType<typeof useCart>; 
                 <div className="flex-1 min-w-0">
                   <h3 className="font-serif text-lg break-words">{it.product.nombre}</h3>
                   <p className="text-xs text-muted-foreground mt-1 truncate">Talle {it.talle}{it.color ? ` · ${it.color}` : ""}</p>
+                  {cart.problemas.some((p) => p.productId === it.productId) && (
+                    <p data-testid="aviso-stock" className="text-xs text-destructive mt-1">
+                      {sinStock(it.product.stock)
+                        ? "Sin stock: eliminalo para continuar"
+                        : `Solo quedan ${stockDisponible(it.product.stock)} unidades: ajustá la cantidad`}
+                    </p>
+                  )}
                 </div>
                 <span className="tabular-nums shrink-0 whitespace-nowrap pt-1">
                   {formatPrice(it.product.precio * it.cantidad)}
@@ -289,7 +320,13 @@ function PasoCarrito({ cart, onContinuar }: { cart: ReturnType<typeof useCart>; 
                     <Minus className="h-3.5 w-3.5" />
                   </button>
                   <span className="w-10 text-center text-sm tabular-nums">{it.cantidad}</span>
-                  <button aria-label="Aumentar" onClick={() => cart.setQty(it.productId, it.talle, it.cantidad + 1, it.color)} className="h-9 w-9 flex items-center justify-center hover:bg-secondary">
+                  <button
+                    aria-label="Aumentar"
+                    disabled={unidadesAgregables(cart.items, it.productId, it.product.stock) === 0}
+                    title={unidadesAgregables(cart.items, it.productId, it.product.stock) === 0 ? "No hay más stock" : undefined}
+                    onClick={() => cart.setQty(it.productId, it.talle, it.cantidad + 1, it.color)}
+                    className="h-9 w-9 flex items-center justify-center hover:bg-secondary disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                  >
                     <Plus className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -310,7 +347,14 @@ function PasoCarrito({ cart, onContinuar }: { cart: ReturnType<typeof useCart>; 
           <div className="flex justify-between"><span className="text-muted-foreground">Envío</span><span className="text-muted-foreground">A coordinar</span></div>
           <div className="border-t border-border pt-3 mt-3 flex justify-between text-base"><span>Total estimado</span><span className="tabular-nums">{formatPrice(cart.total)}</span></div>
         </div>
-        <Button variant="hero" size="lg" onClick={onContinuar} className="w-full mt-6">Continuar al checkout</Button>
+        <Button variant="hero" size="lg" onClick={onContinuar} className="w-full mt-6" disabled={cart.problemas.length > 0}>
+          Continuar al checkout
+        </Button>
+        {cart.problemas.length > 0 && (
+          <p className="text-xs text-destructive mt-3 text-center">
+            Hay productos sin stock suficiente en tu carrito. Ajustalos para continuar.
+          </p>
+        )}
       </aside>
     </div>
   );

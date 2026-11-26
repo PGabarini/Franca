@@ -128,7 +128,13 @@ function AdminProductos() {
                       ? `${Math.round(((p.precio - p.costo) / p.precio) * 100)}%`
                       : "—"}
                   </TableCell>
-                  <TableCell className="text-right">{p.stock}</TableCell>
+                  <TableCell className="text-right">
+                    {p.stock <= 0 ? (
+                      <span className="text-destructive font-medium">Sin stock</span>
+                    ) : (
+                      <span className={p.stock < 3 ? "text-amber-700" : undefined}>{p.stock}</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <span className={p.activo ? "text-foreground" : "text-muted-foreground"}>
                       {p.activo ? "Activo" : "Inactivo"}

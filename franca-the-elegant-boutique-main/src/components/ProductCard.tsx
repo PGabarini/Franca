@@ -2,8 +2,12 @@ import { Link } from "@tanstack/react-router";
 import type { Product } from "@/lib/products";
 import { formatPrice } from "@/lib/products";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { etiquetaStock, sinStock } from "@/lib/stock";
+import { cn } from "@/lib/utils";
 
 export function ProductCard({ product }: { product: Product }) {
+  const etiqueta = etiquetaStock(product.stock);
+  const agotado = sinStock(product.stock);
   return (
     <Link
       to="/producto/$slug"
@@ -15,11 +19,20 @@ export function ProductCard({ product }: { product: Product }) {
           src={product.imagen_url}
           alt={product.nombre}
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          className={cn(
+            "h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]",
+            agotado && "opacity-60 grayscale-[40%]",
+          )}
         />
-        {product.stock < 3 && (
-          <span className="absolute top-3 left-3 bg-background/95 px-2 py-1 text-[9px] uppercase tracking-brand">
-            Últimas unidades
+        {etiqueta && (
+          <span
+            data-testid="etiqueta-stock"
+            className={cn(
+              "absolute top-3 left-3 px-2 py-1 text-[9px] uppercase tracking-brand",
+              agotado ? "bg-foreground text-background" : "bg-background/95",
+            )}
+          >
+            {etiqueta}
           </span>
         )}
         <div className="absolute top-2 right-2">

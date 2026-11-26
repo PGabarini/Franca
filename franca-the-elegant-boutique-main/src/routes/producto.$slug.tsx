@@ -16,6 +16,9 @@ import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import { ChevronLeft, ShoppingBag, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sinStock, textoStockDetalle } from "@/lib/stock";
+
+const TALLE_UNICO = "Único";
 
 export const Route = createFileRoute("/producto/$slug")({
   loader: async ({ params, context: { queryClient } }) => {
@@ -48,26 +51,38 @@ function ProductoPage() {
   const { slug } = Route.useParams();
   const { data: product } = useSuspenseQuery(productQueryOptions(slug));
   const { data: catalog } = useSuspenseQuery(productsQueryOptions());
+  // Los hooks van antes de cualquier return condicional (reglas de React).
+  const [talle, setTalle] = useState<string>(product?.talles[0] ?? TALLE_UNICO);
+  const [color, setColor] = useState<string | undefined>(product?.colores[0]);
+  // El producto de la página tiene el stock más fresco: lo priorizamos sobre el del catálogo.
+  const cart = useCart(product ? [product, ...catalog.filter((p) => p.id !== product.id)] : catalog);
+  const navigate = useNavigate();
 
   if (!product) return null;
 
-  const [talle, setTalle] = useState(product.talles[0]);
-  const [color, setColor] = useState<string | undefined>(product.colores[0]);
-  const cart = useCart(catalog);
-  const navigate = useNavigate();
+  const agotado = sinStock(product.stock);
+  const talles = product.talles.length > 0 ? product.talles : [TALLE_UNICO];
 
   const relacionados = catalog
     .filter((p) => p.categoria === product.categoria && p.id !== product.id)
     .slice(0, 4);
 
   const handleAdd = () => {
-    cart.add(product.id, talle, 1, color);
+    if (agotado) return;
+    const agregadas = cart.add(product.id, talle, 1, color);
+    if (agregadas === 0) {
+      toast.error("No hay más stock disponible", {
+        description: `Ya tenés en el carrito todas las unidades disponibles de ${product.nombre}.`,
+      });
+      return;
+    }
     toast.success("Agregado al carrito", {
       description: `${product.nombre} · Talle ${talle}${color ? ` · ${color}` : ""}`,
     });
   };
 
   const handleBuyNow = () => {
+    if (agotado) return;
     navigate({
       to: "/carrito",
       search: { checkout: true, buyNow: product.id, talle, color },
@@ -127,11 +142,16 @@ function ProductoPage() {
                 <span className="text-xs uppercase tracking-brand">Talle</span>
                 <div className="flex items-center gap-3">
                   <SizeGuide talles={product.talles} medidas={product.talles_medidas} categoria={product.categoria} />
-                  <span className="text-xs text-muted-foreground">{product.stock} en stock</span>
+                  <span
+                    data-testid="stock-detalle"
+                    className={cn("text-xs", agotado ? "text-destructive font-medium" : "text-muted-foreground")}
+                  >
+                    {textoStockDetalle(product.stock)}
+                  </span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                {product.talles.map((t: string) => (
+                {talles.map((t: string) => (
                   <button
                     key={t}
                     onClick={() => setTalle(t)}
@@ -149,15 +169,23 @@ function ProductoPage() {
             </div>
 
             <div className="mt-8 flex flex-col gap-3">
+              {agotado && (
+                <p className="text-sm border border-border bg-secondary/40 px-4 py-3">
+                  Este producto está <strong>sin stock</strong> por el momento. Podés guardarlo en favoritos o
+                  consultarnos por WhatsApp si vuelve a ingresar.
+                </p>
+              )}
               <div className="flex gap-3">
-                <Button variant="hero" size="lg" onClick={handleAdd} className="flex-1">
-                  <ShoppingBag className="h-4 w-4" /> Agregar al carrito
+                <Button variant="hero" size="lg" onClick={handleAdd} className="flex-1" disabled={agotado}>
+                  <ShoppingBag className="h-4 w-4" /> {agotado ? "Sin stock" : "Agregar al carrito"}
                 </Button>
                 <FavoriteButton productoId={product.id} size="lg" />
               </div>
-              <Button variant="hero" size="lg" onClick={handleBuyNow} className="w-full">
-                <Zap className="h-4 w-4" /> Comprar ahora
-              </Button>
+              {!agotado && (
+                <Button variant="hero" size="lg" onClick={handleBuyNow} className="w-full">
+                  <Zap className="h-4 w-4" /> Comprar ahora
+                </Button>
+              )}
             </div>
 
             <div className="mt-10 grid grid-cols-2 gap-4 text-xs text-muted-foreground border-t border-border pt-6">

@@ -3,20 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatPrice, type Product } from "./products";
 import { BRAND } from "./config";
 
-export type CartItem = {
-  productId: string;
-  cantidad: number;
-  talle: string;
-  color?: string;
-};
+import {
+  addItem, removeItem, setItemQty, parseCart, problemasDeStock, type CartItem,
+} from "./cart-items";
+
+export type { CartItem } from "./cart-items";
 
 const KEY = "franca:cart:v2";
 
 function read(): CartItem[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as CartItem[]) : [];
+    return parseCart(localStorage.getItem(KEY));
   } catch {
     return [];
   }
@@ -27,12 +25,10 @@ function write(items: CartItem[]) {
   window.dispatchEvent(new CustomEvent("franca:cart"));
 }
 
-const sameLine = (a: CartItem, b: { productId: string; talle: string; color?: string }) =>
-  a.productId === b.productId && a.talle === b.talle && (a.color ?? "") === (b.color ?? "");
-
 /**
  * Hook del carrito. Persiste en localStorage y resuelve los productos
  * contra una lista pasada (que viene de Supabase via TanStack Query).
+ * Si el catálogo trae el producto, se respeta su stock.
  */
 export function useCart(catalog: Product[] = []) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -48,25 +44,25 @@ export function useCart(catalog: Product[] = []) {
     };
   }, []);
 
+  const stockDe = useCallback(
+    (productId: string) => catalog.find((p) => p.id === productId)?.stock,
+    [catalog],
+  );
+
+  /** Devuelve cuántas unidades se agregaron (0 si no hay stock). */
   const add = useCallback((productId: string, talle: string, cantidad = 1, color?: string) => {
-    const current = read();
-    const idx = current.findIndex((i) => sameLine(i, { productId, talle, color }));
-    if (idx >= 0) current[idx].cantidad += cantidad;
-    else current.push({ productId, talle, cantidad, color });
-    write(current);
-  }, []);
+    const { items: next, agregadas } = addItem(read(), { productId, talle, color }, cantidad, stockDe(productId));
+    if (agregadas > 0) write(next);
+    return agregadas;
+  }, [stockDe]);
 
   const remove = useCallback((productId: string, talle: string, color?: string) => {
-    write(read().filter((i) => !sameLine(i, { productId, talle, color })));
+    write(removeItem(read(), { productId, talle, color }));
   }, []);
 
   const setQty = useCallback((productId: string, talle: string, cantidad: number, color?: string) => {
-    if (cantidad <= 0) return remove(productId, talle, color);
-    const current = read().map((i) =>
-      sameLine(i, { productId, talle, color }) ? { ...i, cantidad } : i,
-    );
-    write(current);
-  }, [remove]);
+    write(setItemQty(read(), { productId, talle, color }, cantidad, stockDe(productId)));
+  }, [stockDe]);
 
   const clear = useCallback(() => write([]), []);
 
@@ -82,7 +78,12 @@ export function useCart(catalog: Product[] = []) {
   // incluso cuando el hook se usa sin catálogo (p. ej. en el Header global).
   const count = items.reduce((acc, i) => acc + i.cantidad, 0);
 
-  return { items: detailed, total, count, add, remove, setQty, clear };
+  const problemas = problemasDeStock(
+    items,
+    new Map(detailed.map((i) => [i.product.id, i.product.stock] as [string, number])),
+  );
+
+  return { items: detailed, total, count, problemas, add, remove, setQty, clear };
 }
 
 /**
