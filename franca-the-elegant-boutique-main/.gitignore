@@ -38,3 +38,6 @@ dist-ssr
 .env
 scripts_tmp/
 scripts_tmp_gen_token.mjs
+
+# Cache local de la CLI de Supabase
+supabase/.temp/
