@@ -2,29 +2,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
-const CATEGORIES = ["Sweaters", "Pantalones", "Camisas", "Abrigos", "Faldas", "Accesorios"] as const;
+import { productoSchema as productSchema, productoUpdateSchema as updateProductSchema } from "@/lib/producto-schema";
 
 const authSchema = z.object({ accessToken: z.string().min(20) });
 
-const productSchema = z.object({
-  slug: z.string().trim().min(1).max(80).regex(/^[a-z0-9-]+$/),
-  nombre: z.string().trim().min(1).max(120),
-  descripcion: z.string().trim().max(2000),
-  precio: z.number().min(0).max(99999999),
-  costo: z.number().min(0).max(99999999).nullable().optional(),
-  stock: z.number().int().min(0).max(99999),
-  imagen_url: z.string().trim().min(1).max(500).refine((value) => /^p[1-8]$/.test(value) || /^https?:\/\//i.test(value)),
-  categoria: z.string().min(1, "La categoría es obligatoria"),
-  talles: z.array(z.string()).min(1),
-  color: z.array(z.string().trim().min(1).max(60)).max(20),
-  destacado: z.boolean(),
-  activo: z.boolean(),
-  talles_medidas: z.record(z.string().min(1).max(20), z.string().trim().max(500)).default({}),
-});
-
 const idSchema = z.object({ id: z.string().uuid() });
-const updateProductSchema = productSchema.extend({ id: z.string().uuid() });
 const promoteSchema = authSchema.extend({ email: z.string().trim().email() });
 
 const imageUrlSchema = z.string().trim().min(1).max(500).refine(
