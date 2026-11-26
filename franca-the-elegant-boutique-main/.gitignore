@@ -30,3 +30,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.env.*
+!.env.example
+
+# Secretos y scripts temporales (nunca subir)
+.env
+scripts_tmp/
+scripts_tmp_gen_token.mjs

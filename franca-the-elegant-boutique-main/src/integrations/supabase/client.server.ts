@@ -3,14 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 function createSupabaseAdminClient() {
-  // Le decimos a Vite que inyecte las variables en tiempo de compilación
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-  // OJO ACÁ: Usamos el prefijo VITE_ para la llave maestra secreta
-  const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // La URL es pública: puede venir de la variable de build (VITE_) o del runtime.
+  const SUPABASE_URL = process.env.SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+  // La llave secreta se lee SOLO en runtime (secreto del Worker en Cloudflare,
+  // o .env en desarrollo local). Nunca usar prefijo VITE_: Vite la incrustaría en el build.
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error(
-      'Missing Supabase server environment variables. Ensure VITE_SUPABASE_URL and VITE_SUPABASE_SERVICE_ROLE_KEY are set.'
+      'Missing Supabase server environment variables. Ensure SUPABASE_URL (or VITE_SUPABASE_URL) and the SUPABASE_SERVICE_ROLE_KEY secret are set.'
     );
   }
 
