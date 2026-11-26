@@ -75,7 +75,7 @@ function AdminLayout() {
       <Header />
       {isAdmin && (
         <div className="border-b border-border">
-          <div className="container-editorial flex items-center gap-6 h-12 text-xs uppercase tracking-brand text-muted-foreground">
+          <nav className="container-editorial flex items-center gap-6 h-12 text-xs uppercase tracking-brand text-muted-foreground overflow-x-auto whitespace-nowrap">
             <Link to="/admin" className="hover:text-foreground" activeProps={{ className: "text-foreground" }}>
               Panel
             </Link>
@@ -91,7 +91,24 @@ function AdminLayout() {
             <Link to="/admin/mensajes" className="hover:text-foreground" activeProps={{ className: "text-foreground" }}>
               Mensajes
             </Link>
-          </div>
+            <Link
+              to="/admin/configuracion"
+              hash="categorias"
+              className="hover:text-foreground"
+              activeOptions={{ includeHash: true }}
+              activeProps={{ className: "text-foreground" }}
+            >
+              Categorías
+            </Link>
+            <Link
+              to="/admin/configuracion"
+              className="hover:text-foreground"
+              activeOptions={{ includeHash: false }}
+              activeProps={{ className: "text-foreground" }}
+            >
+              Configuración
+            </Link>
+          </nav>
         </div>
       )}
       <main className="flex-1">

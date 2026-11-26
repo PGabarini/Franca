@@ -88,9 +88,13 @@ function AdminHome() {
           <h2 className="font-serif text-2xl">Pedidos</h2>
           <p className="text-sm text-muted-foreground mt-2">Ver pedidos, comprobantes y actualizar estados.</p>
         </Link>
+        <Link to="/admin/configuracion" hash="categorias" className="border border-border p-8 hover:bg-muted/40 transition-colors">
+          <h2 className="font-serif text-2xl">Categorías</h2>
+          <p className="text-sm text-muted-foreground mt-2">Agregar, renombrar, ordenar u ocultar categorías del catálogo.</p>
+        </Link>
         <Link to="/admin/configuracion" className="border border-border p-8 hover:bg-muted/40 transition-colors">
           <h2 className="font-serif text-2xl">Configuración</h2>
-          <p className="text-sm text-muted-foreground mt-2">Editar datos bancarios visibles en el checkout.</p>
+          <p className="text-sm text-muted-foreground mt-2">Datos bancarios, imágenes del sitio, locales de retiro y códigos de descuento.</p>
         </Link>
       </div>
 

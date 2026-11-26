@@ -15,6 +15,7 @@ import {
 } from "@/lib/descuentos";
 import {
   categoriasAdminQueryOptions, crearCategoria, actualizarCategoria, eliminarCategoria,
+  contarProductosEnCategoria, validarNombreCategoria, mensajeErrorCategoria,
   type Categoria,
 } from "@/lib/categorias";
 import {
@@ -316,9 +317,12 @@ function CategoriasSection() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const nombre = nuevo.nombre.trim();
-    if (!nombre) return toast.error("Ingresá un nombre");
-    if (nombre.length > 60) return toast.error("Máximo 60 caracteres");
+    let nombre: string;
+    try {
+      nombre = validarNombreCategoria(nuevo.nombre);
+    } catch (err) {
+      return toast.error(mensajeErrorCategoria(err));
+    }
     setCreating(true);
     try {
       await crearCategoria({ nombre, orden: Number(nuevo.orden) || 0 });
@@ -326,15 +330,14 @@ function CategoriasSection() {
       setNuevo({ nombre: "", orden: "0" });
       refetch();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al crear";
-      toast.error(msg.includes("duplicate") ? "Ya existe una categoría con ese nombre" : msg);
+      toast.error(mensajeErrorCategoria(err, "Error al crear"));
     } finally {
       setCreating(false);
     }
   };
 
   return (
-    <div className="mt-16">
+    <div id="categorias" className="mt-16 scroll-mt-24">
       <h2 className="font-serif text-3xl mb-2">Categorías</h2>
       <p className="text-muted-foreground mb-8">Creá, renombrá o desactivá las categorías que aparecen en el catálogo y en el formulario de productos.</p>
 
@@ -381,28 +384,42 @@ function CategoriaRow({ categoria, onChanged }: { categoria: Categoria; onChange
   };
 
   const handleEliminar = async () => {
-    if (!confirm(`¿Eliminar la categoría "${categoria.nombre}"? Los productos con esta categoría no se borran, pero quedan sin clasificar.`)) return;
+    let enUso = 0;
+    try {
+      enUso = await contarProductosEnCategoria(categoria.nombre);
+    } catch {
+      // si falla el conteo, seguimos con el aviso genérico
+    }
+    const aviso = enUso > 0
+      ? `¿Eliminar la categoría "${categoria.nombre}"?\n\n${enUso} producto(s) la usan: no se borran, pero quedan sin categoría en el filtro del catálogo. Si solo querés ocultarla, usá "Desactivar".`
+      : `¿Eliminar la categoría "${categoria.nombre}"?`;
+    if (!confirm(aviso)) return;
     try {
       await eliminarCategoria(categoria.id);
       toast.success("Categoría eliminada");
       onChanged();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error al eliminar");
+      toast.error(mensajeErrorCategoria(err, "Error al eliminar"));
     }
   };
 
   const handleGuardar = async () => {
-    const nombre = form.nombre.trim();
-    if (!nombre) return toast.error("Nombre requerido");
+    let nombre: string;
+    try {
+      nombre = validarNombreCategoria(form.nombre);
+    } catch (err) {
+      return toast.error(mensajeErrorCategoria(err));
+    }
     setSaving(true);
     try {
-      await actualizarCategoria(categoria.id, { nombre, orden: Number(form.orden) || 0 });
-      toast.success("Cambios guardados");
+      const { productosActualizados } = await actualizarCategoria(categoria.id, { nombre, orden: Number(form.orden) || 0 });
+      toast.success("Cambios guardados", productosActualizados > 0
+        ? { description: `${productosActualizados} producto(s) pasaron a "${nombre}".` }
+        : undefined);
       setEditing(false);
       onChanged();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al guardar";
-      toast.error(msg.includes("duplicate") ? "Ya existe una categoría con ese nombre" : msg);
+      toast.error(mensajeErrorCategoria(err, "Error al guardar"));
     } finally {
       setSaving(false);
     }
@@ -429,7 +446,7 @@ function CategoriaRow({ categoria, onChanged }: { categoria: Categoria; onChange
   }
 
   return (
-    <div className="border border-border p-4 flex items-center justify-between gap-4">
+    <div className="border border-border p-4 flex flex-wrap items-center justify-between gap-4">
       <div>
         <div className="flex items-center gap-2">
           <p className="font-medium">{categoria.nombre}</p>
